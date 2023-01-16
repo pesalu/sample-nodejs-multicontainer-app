@@ -24,7 +24,7 @@ build_images:
         DOCKER_TLS_CERTDIR: "/certs"
     image: docker:23.0.0-rc.1-cli
     services:
-        - docker:23.0.0-rc.1-cli-dind
+        - docker:23.0.0-rc.1-dind
     before_script:
         - docker login -u $REGISTRY_USER -p $REGISTRY_PASS #$REGISTRY_NAME <- image registry account needed
     script: 
