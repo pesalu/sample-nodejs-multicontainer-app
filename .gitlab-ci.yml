@@ -17,6 +17,7 @@ stages:
 #        - docker run -e CI=true testimage:testtag npm test
 
 build_images:
+    stage: build
     variables: 
         IMAGE_NAME: petriluukkonen/front-end
         IMAGE_TAG: v1 
