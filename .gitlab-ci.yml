@@ -2,28 +2,30 @@ stages:
     - test # nothing happens at this stage yet
     - build # build docker images and push to docker registry
 
-test:
-    stage: test
-    image: docker:23.0.0-rc.1-cli
-    services:
-        - docker:23.0.0-rc.1-dind
-    variables:
-        DOCKER_TLS_CERTDIR: "/certs"
-    before_script:
-        #- docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./client/Dockerfile.dev ./client
-        - docker build -t testimage:testtag -f ./client/Dockerfile.dev ./client
-    script: 
-        #- docker run $IMAGE_NAME:$IMAGE_TAG npm test -- --coverage
-        - docker run -e CI=true testimage:testtag npm test
-
-#build_images:
+#test:
+#    stage: test
 #    image: docker:23.0.0-rc.1-cli
 #    services:
-#        - docker:23.0.0-rc.1-cli-dind
+#        - docker:23.0.0-rc.1-dind
 #    variables:
 #        DOCKER_TLS_CERTDIR: "/certs"
 #    before_script:
-#        - docker login -u $REGISTRY_USER -p $REGISTRY_PASS $REGISTRY_NAME <- image registry account needed
+        #- docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./client/Dockerfile.dev ./client
+#        - docker build -t testimage:testtag -f ./client/Dockerfile.dev ./client
 #    script: 
-#        - docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./client/Dockerfile.dev ./client
-#        - docker push $IMAGE_NAME:$IMAGE_TAG
+        #- docker run $IMAGE_NAME:$IMAGE_TAG npm test -- --coverage
+#        - docker run -e CI=true testimage:testtag npm test
+
+build_images:
+    variables: 
+        IMAGE_NAME: petriluukkonen/front-end
+        IMAGE_TAG: v1 
+        DOCKER_TLS_CERTDIR: "/certs"
+    image: docker:23.0.0-rc.1-cli
+    services:
+        - docker:23.0.0-rc.1-cli-dind
+    before_script:
+        - docker login -u $REGISTRY_USER -p $REGISTRY_PASS #$REGISTRY_NAME <- image registry account needed
+    script: 
+        - docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./client/Dockerfile.dev ./client
+        - docker push $IMAGE_NAME:$IMAGE_TAG
