@@ -1,32 +1,31 @@
-stages: 
-    - test # nothing happens at this stage yet
-    - build # build docker images and push to docker registry
+stages:
+    - test
+    - build
+    - publish
 
-#test:
-#    stage: test
-#    image: docker:23.0.0-rc.1-cli
-#    services:
-#        - docker:23.0.0-rc.1-dind
-#    variables:
-#        DOCKER_TLS_CERTDIR: "/certs"
-#    before_script:
-        #- docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./client/Dockerfile.dev ./client
-#        - docker build -t testimage:testtag -f ./client/Dockerfile.dev ./client
-#    script: 
-        #- docker run $IMAGE_NAME:$IMAGE_TAG npm test -- --coverage
-#        - docker run -e CI=true testimage:testtag npm test
+variables: 
+    DOCKER_REGISTRY: 031648642715.dkr.ecr.us-east-1.amazonaws.com
+    AWS_DEFAULT_REGION: us-east-1
+    APP_NAME: sample-multicontainer-app-client
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
 
-build_images:
+build:
     stage: build
-    variables: 
-        IMAGE_NAME: petriluukkonen/front-end
-        IMAGE_TAG: v1 
-        DOCKER_TLS_CERTDIR: "/certs"
-    image: docker:23.0.0-rc.1-cli
+    image:
+        name: docker:docker:23.0.0-rc.1-cli
     services:
         - docker:23.0.0-rc.1-dind
     before_script:
-        - docker login -u $REGISTRY_USER -p $REGISTRY_PASS #$REGISTRY_NAME <- image registry account needed
-    script: 
-        - docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./client/Dockerfile.dev ./client
-        - docker push $IMAGE_NAME:$IMAGE_TAG
+        - apk add --no-cache curl jq python3 py3-pip
+        - pip install awscli
+        - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+        - aws --version # print into logs the version of aws cli
+        - docker info # print docker 
+        - docker --version # verify docker installed by printing the version
+    script:
+        - docker build -t $DOCKER_REGISTRY/$APP_NAME:$CI_PIPELINE_IID -f ./client/Dockerfile.dev ./client
+        - docker push $DOCKER_REGISTRY/$APP_NAME:$CI_PIPELINE_IID
+
+
